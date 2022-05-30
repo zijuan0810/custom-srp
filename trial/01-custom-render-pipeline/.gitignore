@@ -1,0 +1,17 @@
+*.suo
+bin/
+obj/
+*.user
+.vs
+Library/
+Logs/
+Temp/
+UserSettings/
+Output/
+ILRuntimeDemo/Packages/packages-lock.json
+ILRuntimeDemo/.vsconfig
+/out
+ILRuntimeDemo/*.csproj
+/*.csproj
+/*.sln
+/.idea
