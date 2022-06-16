@@ -241,6 +241,9 @@ int GetAdditionalLightsCount()
 //                         BRDF Functions                                    //
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \brief 标准的绝缘体反射率平均值为0.04
+ */
 #define kDieletricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)
 
 struct BRDFData
@@ -258,6 +261,11 @@ struct BRDFData
     half roughness2MinusOne;    // roughness^2 - 1.0
 };
 
+/**
+ * \brief 镜面反射率
+ * \param specular 镜面反射颜色
+ * \return
+ */
 half ReflectivitySpecular(half3 specular)
 {
 #if defined(SHADER_API_GLES)
@@ -278,7 +286,17 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+/**
+ * \brief 初始化BRDF
+ * \param albedo 
+ * \param metallic 
+ * \param specular 
+ * \param smoothness 
+ * \param alpha 
+ * \param outBRDFData 
+ */
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha,
+                               out BRDFData outBRDFData)
 {
 #ifdef _SPECULAR_SETUP
     half reflectivity = ReflectivitySpecular(specular);
@@ -288,10 +306,14 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.specular = specular;
 #else
 
+    //在现实世界中灯光会从非电解质表面反弹出去，使其表面呈现出高亮部分。非电解质表面的反射率变化很多，但其平均值在0.04左右，
+    //因此我们需要将反射率从范围0-1调整到0-0.96
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
-    half reflectivity = 1.0 - oneMinusReflectivity;
+    half reflectivity = 1.0 - oneMinusReflectivity; //将范围从0-1调整为0-0.96
 
     outBRDFData.diffuse = albedo * oneMinusReflectivity;
+    //根据能量守恒原则，specular = albedo - diffuse，此时是忽略金属影响表面的镜面反射的
+    //由于非金属表面的镜面反射颜色为白色，因此我们可以利用金属度属性在最小反射率和表面颜色albedo之间进行插值
     outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
 #endif
 
@@ -323,7 +345,7 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
 // * NDF [Modified] GGX
 // * Modified Kelemen and Szirmay-Kalos for Visibility term
 // * Fresnel approximated with 1/LdotH
-half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
 {
 #ifndef _SPECULARHIGHLIGHTS_OFF
     float3 halfDir = SafeNormalize(float3(lightDirectionWS) + float3(viewDirectionWS));
@@ -531,16 +553,30 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
     return lightColor * specularReflection;
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+/**
+ * \brief 计算基于物理的(PBR)光照
+ * \param brdfData BRDF数据
+ * \param lightColor 光的颜色
+ * \param lightDirectionWS 世界空间中光的方向
+ * \param lightAttenuation 光的衰减度，即光的强度
+ * \param normalWS 世界空间中表面的法线
+ * \param viewDirectionWS 世界空间中视角方向
+ * \return 最终的光照颜色
+ */
+half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation,
+                              half3 normalWS, half3 viewDirectionWS)
 {
+    //计算辐射度，即射入表面的光线是多少
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = lightColor * (lightAttenuation * NdotL);
-    return DirectBDRF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+    
+    return DirectBRDF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
 }
 
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    return LightingPhysicallyBased(brdfData, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
+    return LightingPhysicallyBased(brdfData, light.color, light.direction,
+        light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)
