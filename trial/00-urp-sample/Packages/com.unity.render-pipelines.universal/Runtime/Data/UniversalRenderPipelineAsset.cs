@@ -311,8 +311,7 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
-            return m_RendererDataList[0] =
-                CreateRendererAsset("Assets/ForwardRenderer.asset", type, false);
+            return m_RendererDataList[0] = CreateRendererAsset("Assets/ForwardRenderer.asset", type, false);
 #else
             m_RendererDataList[0] = null;
             return m_RendererDataList[0];
