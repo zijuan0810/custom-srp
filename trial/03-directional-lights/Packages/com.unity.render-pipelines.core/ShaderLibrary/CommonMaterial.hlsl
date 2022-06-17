@@ -19,26 +19,54 @@
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
 
+/**
+ * \brief 将直觉粗糙度转换为粗糙度。这里使用了迪士尼的粗糙度计算模式：Disney Roughness = sqrt(Roughness)
+ * \param perceptualRoughness 直觉粗糙度，等价于Linear Roughness
+ * \return 粗糙度
+ */
 real PerceptualRoughnessToRoughness(real perceptualRoughness)
 {
     return perceptualRoughness * perceptualRoughness;
 }
 
+/**
+ * \brief 将粗糙度转换为直觉粗糙度，即PerceptualRoughnessToRoughness的求逆
+ * \param roughness 粗糙度
+ * \return 直觉粗糙度
+ */
 real RoughnessToPerceptualRoughness(real roughness)
 {
     return sqrt(roughness);
 }
 
+/**
+ * \brief 将粗糙度转换为直觉光滑度，即光滑度 = 1 - 粗糙度
+ * \param roughness 粗糙度
+ * \return 直觉光滑度
+ */
 real RoughnessToPerceptualSmoothness(real roughness)
 {
     return 1.0 - sqrt(roughness);
 }
 
+/**
+ * \brief 将直觉光滑度转换为粗糙度。由于粗糙度值较高的时候响应很快，但粗糙度低的时候响应没那么快。因此这里为了降低其响应速度，使用了寒霜的做法
+ * 即alpha = roughness = linear roughness，寒霜改成了alpha = roughness = (linear roughness) ^ 2，
+ * 所以alpha^2 = roughness ^ 2 = (linear roughness) ^ 4。
+ * 当然，remapping可以有很多种方法，比如crytek用了alpha^2 = (1 - 0.7 Smoothness) ^ 6，效果和寒霜的四次方效果接近。
+ * \param perceptualSmoothness 直觉粗糙度
+ * \return 
+ */
 real PerceptualSmoothnessToRoughness(real perceptualSmoothness)
 {
     return (1.0 - perceptualSmoothness) * (1.0 - perceptualSmoothness);
 }
 
+/**
+ * \brief 将直觉光滑度转换为直觉粗糙度，即光滑度 = 1 - 粗糙度
+ * \param perceptualSmoothness 直觉光滑度
+ * \return 直觉粗糙度
+ */
 real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 {
     return (1.0 - perceptualSmoothness);
