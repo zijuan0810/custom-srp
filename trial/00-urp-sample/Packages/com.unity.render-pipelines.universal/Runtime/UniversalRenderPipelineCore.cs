@@ -2,21 +2,22 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
-
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public enum MixedLightingSetup
     {
         None,
         ShadowMask,
         Subtractive,
     };
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct RenderingData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct RenderingData
     {
         public CullingResults cullResults;
         public CameraData cameraData;
@@ -25,7 +26,9 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
-        [Obsolete("killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
+
+        [Obsolete(
+            "killAlphaInFinalBlit is deprecated in the Universal Render Pipeline since it is no longer needed on any supported platform.")]
         public bool killAlphaInFinalBlit;
 
         /// <summary>
@@ -34,7 +37,8 @@ namespace UnityEngine.Rendering.Universal
         public bool postProcessingEnabled;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct LightData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct LightData
     {
         public int mainLightIndex;
         public int additionalLightsCount;
@@ -44,7 +48,8 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsMixedLighting;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct CameraData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct CameraData
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
         // We might change this API soon.
@@ -166,7 +171,8 @@ namespace UnityEngine.Rendering.Universal
         public bool resolveFinalTarget;
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct ShadowData
     {
         public bool supportsMainLightShadows;
         public bool requiresScreenSpaceShadowResolve;
@@ -196,6 +202,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
+
         // Undefined:
         // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
@@ -228,6 +235,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+
         [Obsolete("The _KILL_ALPHA shader keyword is deprecated in the Universal Render Pipeline.")]
         public static readonly string KillAlpha = "_KILL_ALPHA";
 
@@ -283,7 +291,9 @@ namespace UnityEngine.Rendering.Universal
             bool isGameCamera = IsGameCamera(camera);
             bool isCompatWithXRDimension = true;
 #if ENABLE_VR && ENABLE_VR_MODULE
-            isCompatWithXRDimension &= (camera.targetTexture ? camera.targetTexture.dimension == UnityEngine.XR.XRSettings.deviceEyeTextureDimension : true);
+            isCompatWithXRDimension &= (camera.targetTexture
+                ? camera.targetTexture.dimension == UnityEngine.XR.XRSettings.deviceEyeTextureDimension
+                : true);
 #endif
             return XRGraphics.enabled && isGameCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && isCompatWithXRDimension;
         }
@@ -308,7 +318,8 @@ namespace UnityEngine.Rendering.Universal
                 throw new ArgumentNullException("camera");
 
 #if ENABLE_VR && ENABLE_VR_MODULE
-            return IsStereoEnabled(camera) && !CanXRSDKUseSinglePass(camera) && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
+            return IsStereoEnabled(camera) && !CanXRSDKUseSinglePass(camera) &&
+                   XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass;
 #else
             return false;
 #endif
@@ -354,8 +365,12 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
-		void SortCameras(Camera[] cameras)
+        private Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
+
+        /// <summary>
+        /// 根据深度对摄像机进行排序
+        /// </summary>
+        private void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
@@ -364,7 +379,8 @@ namespace UnityEngine.Rendering.Universal
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);;
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+            ;
             GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
@@ -386,7 +402,8 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 GraphicsFormat hdrFormat;
-                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                if (!needsAlpha &&
+                    RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
