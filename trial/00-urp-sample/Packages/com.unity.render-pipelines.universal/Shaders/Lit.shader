@@ -130,6 +130,7 @@ Shader "Universal Render Pipeline/Lit"
 
             ZWrite On
             ZTest LEqual
+            // 仅写深度缓存，因此不需要颜色数据
             ColorMask 0
             Cull[_Cull]
 

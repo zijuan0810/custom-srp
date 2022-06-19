@@ -3,7 +3,8 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowSliceData
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public struct ShadowSliceData
     {
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
@@ -22,26 +23,32 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShadowUtils
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public static class ShadowUtils
     {
         private static readonly RenderTextureFormat m_ShadowmapFormat;
         private static readonly bool m_ForceShadowPointSampling;
 
         static ShadowUtils()
         {
-            m_ShadowmapFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap) && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
+            m_ShadowmapFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap) &&
+                                (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
-                GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+                                         GraphicsSettings.HasShaderDefine(Graphics.activeTier,
+                                             BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
         }
 
-        public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution, float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
+        public static bool ExtractDirectionalLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData,
+            int shadowLightIndex, int cascadeIndex, int shadowmapWidth, int shadowmapHeight, int shadowResolution,
+            float shadowNearPlane, out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData,
+            out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
-            ShadowSplitData splitData;
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
-                cascadeIndex, shadowData.mainLightShadowCascadesCount, shadowData.mainLightShadowCascadesSplit, shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
-                out splitData);
+                cascadeIndex, shadowData.mainLightShadowCascadesCount, shadowData.mainLightShadowCascadesSplit,
+                shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
+                out ShadowSplitData splitData);
 
             cascadeSplitDistance = splitData.cullingSphere;
             shadowSliceData.offsetX = (cascadeIndex % 2) * shadowResolution;
@@ -59,20 +66,22 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
-        public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
+        public static bool ExtractSpotLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData,
+            int shadowLightIndex, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix)
         {
-            ShadowSplitData splitData;
-            bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix, out projMatrix, out splitData);
+            bool success = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(shadowLightIndex, out viewMatrix,
+                out projMatrix, out ShadowSplitData splitData);
             shadowMatrix = GetShadowTransform(projMatrix, viewMatrix);
             return success;
         }
 
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
-            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
-            Matrix4x4 proj, Matrix4x4 view)
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings, Matrix4x4 proj, Matrix4x4 view)
         {
-            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
-            cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
+            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution,
+                shadowSliceData.resolution));
+            cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4,
+                shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
 
             cmd.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(cmd);
@@ -99,6 +108,7 @@ namespace UnityEngine.Rendering.Universal
                 resolution = resolution >> 1;
                 currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
             }
+
             return resolution;
         }
 
@@ -116,11 +126,12 @@ namespace UnityEngine.Rendering.Universal
             shadowSliceData.shadowTransform = sliceTransform * shadowSliceData.shadowTransform;
         }
 
-        public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
+        public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex,
+            ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
             if (shadowLightIndex < 0 || shadowLightIndex >= shadowData.bias.Count)
             {
-                Debug.LogWarning(string.Format("{0} is not a valid light index.", shadowLightIndex));
+                Debug.LogWarning($"{shadowLightIndex} is not a valid light index.");
                 return Vector4.zero;
             }
 
@@ -166,11 +177,13 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
         }
 
-        public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
+        public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight,
+            Vector4 shadowBias)
         {
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
-            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+            cmd.SetGlobalVector("_LightDirection",
+                new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)

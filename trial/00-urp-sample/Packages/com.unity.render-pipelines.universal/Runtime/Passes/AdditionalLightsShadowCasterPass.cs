@@ -50,7 +50,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             renderPassEvent = evt;
 
-            AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");
+            AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow =
+                Shader.PropertyToID("_AdditionalLightsWorldToShadow");
             AdditionalShadowsConstantBuffer._AdditionalShadowParams = Shader.PropertyToID("_AdditionalShadowParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset0 = Shader.PropertyToID("_AdditionalShadowOffset0");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
@@ -62,7 +63,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalShadowsBufferId = Shader.PropertyToID("_AdditionalShadowsBuffer");
             m_AdditionalShadowsIndicesId = Shader.PropertyToID("_AdditionalShadowsIndices");
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
-            m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
+            m_SupportsBoxFilterForShadows = Application.isMobilePlatform ||
+                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
 
             if (!m_UseStructuredBuffer)
             {
@@ -91,7 +93,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int validShadowCastingLights = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
-            for (int i = 0; i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount; ++i)
+            for (int i = 0;
+                 i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount;
+                 ++i)
             {
                 VisibleLight shadowLight = visibleLights[i];
 
@@ -124,11 +128,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                             m_AdditionalShadowCastingLightIndices.Add(i);
                             var light = shadowLight.light;
                             float shadowStrength = light.shadowStrength;
-                            float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                            float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft)
+                                ? 1.0f
+                                : 0.0f;
                             Vector4 shadowParams = new Vector4(shadowStrength, softShadows, 0.0f, 0.0f);
                             if (m_UseStructuredBuffer)
                             {
-                                m_AdditionalLightsShadowData[shadowCastingLightIndex].worldToShadowMatrix = shadowTransform;
+                                m_AdditionalLightsShadowData[shadowCastingLightIndex].worldToShadowMatrix =
+                                    shadowTransform;
                                 m_AdditionalLightsShadowData[shadowCastingLightIndex].shadowParams = shadowParams;
                             }
                             else
@@ -136,6 +143,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 m_AdditionalLightsWorldToShadow[shadowCastingLightIndex] = shadowTransform;
                                 m_AdditionalLightsShadowParams[shadowCastingLightIndex] = shadowParams;
                             }
+
                             isValidShadowSlice = true;
                             validShadowCastingLights++;
                         }
@@ -178,7 +186,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int atlasWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
             int atlasHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
-            int sliceResolution = ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, validShadowCastingLights);
+            int sliceResolution =
+                ShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, validShadowCastingLights);
 
             // In the UI we only allow for square shadow map atlas. Here we check if we can fit
             // all shadow slices into half resolution of the atlas and adjust height to have tighter packing.
@@ -213,7 +222,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // We bake scale and bias to each shadow map in the atlas in the matrix.
                 // saves some instructions in shader.
                 if (m_UseStructuredBuffer)
-                    m_AdditionalLightsShadowData[i].worldToShadowMatrix = sliceTransform * m_AdditionalLightsShadowData[i].worldToShadowMatrix;
+                    m_AdditionalLightsShadowData[i].worldToShadowMatrix =
+                        sliceTransform * m_AdditionalLightsShadowData[i].worldToShadowMatrix;
                 else
                     m_AdditionalLightsWorldToShadow[i] = sliceTransform * m_AdditionalLightsWorldToShadow[i];
                 sliceIndex++;
@@ -224,7 +234,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
+            m_AdditionalLightsShadowmapTexture =
+                ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
             ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture));
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -233,7 +244,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.shadowData.supportsAdditionalLightShadows)
-                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData,
+                    ref renderingData.shadowData);
         }
 
         public override void FrameCleanup(CommandBuffer cmd)
@@ -255,7 +267,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowmapTexture = null;
         }
 
-        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        private void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults,
+            ref LightData lightData, ref ShadowData shadowData)
         {
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
@@ -312,10 +325,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData, bool softShadows)
+        void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData,
+            bool softShadows)
         {
             int shadowLightsCount = m_AdditionalShadowCastingLightIndices.Count;
-            
+
             float invShadowAtlasWidth = 1.0f / shadowData.additionalLightsShadowmapWidth;
             float invShadowAtlasHeight = 1.0f / shadowData.additionalLightsShadowmapHeight;
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
@@ -325,7 +339,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UseStructuredBuffer)
             {
-                NativeArray<ShaderInput.ShadowData> shadowBufferData = new NativeArray<ShaderInput.ShadowData>(shadowLightsCount, Allocator.Temp);
+                NativeArray<ShaderInput.ShadowData> shadowBufferData =
+                    new NativeArray<ShaderInput.ShadowData>(shadowLightsCount, Allocator.Temp);
                 for (int i = 0; i < shadowLightsCount; ++i)
                 {
                     ShaderInput.ShadowData data;
@@ -337,7 +352,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var shadowBuffer = ShaderData.instance.GetShadowDataBuffer(shadowLightsCount);
                 shadowBuffer.SetData(shadowBufferData);
 
-                var shadowIndicesMapBuffer = ShaderData.instance.GetShadowIndicesBuffer(m_AdditionalShadowCastingLightIndicesMap.Count);
+                var shadowIndicesMapBuffer =
+                    ShaderData.instance.GetShadowIndicesBuffer(m_AdditionalShadowCastingLightIndicesMap.Count);
                 shadowIndicesMapBuffer.SetData(m_AdditionalShadowCastingLightIndicesMap, 0, 0,
                     m_AdditionalShadowCastingLightIndicesMap.Count);
 
@@ -347,8 +363,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightsWorldToShadow);
-                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightsShadowParams);
+                cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow,
+                    m_AdditionalLightsWorldToShadow);
+                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams,
+                    m_AdditionalLightsShadowParams);
             }
 
             if (softShadows)
@@ -367,7 +385,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
                 // enough so custom shaders might use it.
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(
+                    invShadowAtlasWidth, invShadowAtlasHeight,
                     shadowData.additionalLightsShadowmapWidth, shadowData.additionalLightsShadowmapHeight));
             }
         }
@@ -384,7 +403,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
 
             Light light = shadowLight.light;
-            return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
+            return light != null && light.shadows != LightShadows.None &&
+                   !Mathf.Approximately(light.shadowStrength, 0.0f);
         }
     }
 }
