@@ -27,6 +27,7 @@ float4 GetShadowPositionHClip(Attributes input)
 
     float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
+    //为了防止相机在光源处渲染时，由于模型距离过近，被近裁剪面所Clip掉，出现黑色空洞，所以对裁剪空间的z做了一个小小的修正
 #if UNITY_REVERSED_Z
     positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
 #else

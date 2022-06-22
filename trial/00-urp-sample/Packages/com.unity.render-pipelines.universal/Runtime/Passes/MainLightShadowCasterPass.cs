@@ -30,7 +30,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int m_ShadowCasterCascadesCount;
         private bool m_SupportsBoxFilterForShadows;
 
+        /// <summary>
+        /// 主光源阴影贴图纹理句柄
+        /// </summary>
         private RenderTargetHandle m_MainLightShadowmap;
+
+        /// <summary>
+        /// 主光源阴影贴图纹理
+        /// </summary>
         private RenderTexture m_MainLightShadowmapTexture;
 
         private Matrix4x4[] m_MainLightShadowMatrices;
@@ -50,16 +57,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             MainLightShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_MainLightWorldToShadow");
             MainLightShadowConstantBuffer._ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0 =
-                Shader.PropertyToID("_CascadeShadowSplitSpheres0");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1 =
-                Shader.PropertyToID("_CascadeShadowSplitSpheres1");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 =
-                Shader.PropertyToID("_CascadeShadowSplitSpheres2");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3 =
-                Shader.PropertyToID("_CascadeShadowSplitSpheres3");
-            MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii =
-                Shader.PropertyToID("_CascadeShadowSplitSphereRadii");
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0 = Shader.PropertyToID("_CascadeShadowSplitSpheres0");
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1 = Shader.PropertyToID("_CascadeShadowSplitSpheres1");
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 = Shader.PropertyToID("_CascadeShadowSplitSpheres2");
+            MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3 = Shader.PropertyToID("_CascadeShadowSplitSpheres3");
+            MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii = Shader.PropertyToID("_CascadeShadowSplitSphereRadii");
             MainLightShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
             MainLightShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
             MainLightShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_MainLightShadowOffset2");
@@ -67,8 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
 
             m_MainLightShadowmap.Init("_MainLightShadowmapTexture");
-            m_SupportsBoxFilterForShadows = Application.isMobilePlatform ||
-                                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
+            m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
         }
 
         public bool Setup(ref RenderingData renderingData)
@@ -91,6 +92,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogWarning("Only directional lights are supported as main light.");
             }
 
+            //根据摄像机视锥裁剪结果，针对指定灯光计算其Shadow Caster影响范围,并返回一个BoundingBox。 假如在范围中没有一个阴影投射对象，那么返回false
             if (!renderingData.cullResults.GetShadowCasterBounds(shadowLightIndex, out _))
                 return false;
 
@@ -121,8 +123,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
-                m_ShadowmapHeight, k_ShadowmapBufferBits);
+            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
             ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture));
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -147,7 +148,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        void Clear()
+        private void Clear()
         {
             m_MainLightShadowmapTexture = null;
 
@@ -161,7 +162,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CascadeSlices[i].Clear();
         }
 
-        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults,
+        private void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref CullingResults cullResults,
             ref LightData lightData, ref ShadowData shadowData)
         {
             int shadowLightIndex = lightData.mainLightIndex;
@@ -184,14 +185,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                         m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     ShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex],
-                        ref settings, m_CascadeSlices[cascadeIndex].projectionMatrix,
-                        m_CascadeSlices[cascadeIndex].viewMatrix);
+                        ref settings, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix);
                 }
 
                 bool softShadows = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades,
-                    shadowData.mainLightShadowCascadesCount > 1);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
 
                 SetupMainLightShadowReceiverConstants(cmd, shadowLight, shadowData.supportsSoftShadows);
@@ -201,8 +200,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight,
-            bool supportsSoftShadows)
+        private void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, bool supportsSoftShadows)
         {
             Light light = shadowLight.light;
             bool softShadows = shadowLight.light.shadows == LightShadows.Soft && supportsSoftShadows;
@@ -231,14 +229,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_ShadowCasterCascadesCount > 1)
             {
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0,
-                    m_CascadeSplitDistances[0]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1,
-                    m_CascadeSplitDistances[1]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2,
-                    m_CascadeSplitDistances[2]);
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3,
-                    m_CascadeSplitDistances[3]);
+                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0, m_CascadeSplitDistances[0]);
+                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1, m_CascadeSplitDistances[1]);
+                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2, m_CascadeSplitDistances[2]);
+                cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSpheres3, m_CascadeSplitDistances[3]);
                 cmd.SetGlobalVector(MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii, new Vector4(
                     m_CascadeSplitDistances[0].w * m_CascadeSplitDistances[0].w,
                     m_CascadeSplitDistances[1].w * m_CascadeSplitDistances[1].w,
@@ -266,9 +260,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
                 // enough so custom shaders might use it.
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowAtlasWidth,
-                    invShadowAtlasHeight,
-                    m_ShadowmapWidth, m_ShadowmapHeight));
+                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
+                    new Vector4(invShadowAtlasWidth, invShadowAtlasHeight, m_ShadowmapWidth, m_ShadowmapHeight));
             }
         }
     };

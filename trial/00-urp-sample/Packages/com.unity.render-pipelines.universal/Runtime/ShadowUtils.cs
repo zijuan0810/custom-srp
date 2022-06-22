@@ -177,15 +177,19 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
         }
 
-        public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight,
-            Vector4 shadowBias)
+        public static void SetupShadowCasterConstantBuffer(CommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
             cmd.SetGlobalVector("_ShadowBias", shadowBias);
-            cmd.SetGlobalVector("_LightDirection",
-                new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
         }
 
+        /// <summary>
+        /// 创建ShadowMap深度缓存纹理
+        /// </summary>
+        /// <param name="width">纹理宽度</param>
+        /// <param name="height">纹理高度</param>
+        /// <param name="bits">深度缓存位数</param>
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
             var shadowTexture = RenderTexture.GetTemporary(width, height, bits, m_ShadowmapFormat);
@@ -195,7 +199,11 @@ namespace UnityEngine.Rendering.Universal
             return shadowTexture;
         }
 
-        static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)
+        /// <summary>
+        /// 通过ComputeDirectionalShadowMatricesAndCullingPrimitives得到的投影矩阵，其对应的x,y,z范围分别为均为(-1,1).
+        /// 因此我们需要构造坐标变换矩阵，可以将世界坐标转换到ShadowMap齐次坐标空间。对应的xy范围为(0,1),z范围为(1,0)
+        /// </summary>
+        private static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)
         {
             // Currently CullResults ComputeDirectionalShadowMatricesAndCullingPrimitives doesn't
             // apply z reversal to projection matrix. We need to do it manually here.

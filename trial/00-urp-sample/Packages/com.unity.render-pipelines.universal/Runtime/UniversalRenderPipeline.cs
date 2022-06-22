@@ -820,7 +820,7 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore
         }
 
-        static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights,
+        private static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights,
             bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
         {
             m_ShadowBiasData.Clear();
@@ -890,14 +890,14 @@ namespace UnityEngine.Rendering.Universal
 
             shadowData.supportsAdditionalLightShadows =
                 SystemInfo.supportsShadows && settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
-            shadowData.additionalLightsShadowmapWidth =
-                shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
+            shadowData.additionalLightsShadowmapWidth = settings.additionalLightsShadowmapResolution;
+            shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows &&
                                              (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
         }
 
-        static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
+        private static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)
         {
             postProcessingData.gradingMode = settings.supportsHDR
                 ? settings.colorGradingMode
@@ -906,8 +906,8 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.lutSize = settings.colorGradingLutSize;
         }
 
-        static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex,
-            out LightData lightData)
+        private static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights,
+            int mainLightIndex, out LightData lightData)
         {
             int maxPerObjectAdditionalLights = UniversalRenderPipeline.maxPerObjectLights;
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -917,8 +917,7 @@ namespace UnityEngine.Rendering.Universal
             if (settings.additionalLightsRenderingMode != LightRenderingMode.Disabled)
             {
                 lightData.additionalLightsCount =
-                    Math.Min((mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length,
-                        maxVisibleAdditionalLights);
+                    Math.Min((mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length, maxVisibleAdditionalLights);
                 lightData.maxPerObjectAdditionalLightsCount = Math.Min(settings.maxAdditionalLightsCount, maxPerObjectAdditionalLights);
             }
             else
@@ -932,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
         }
 
-        static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
+        private static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe |
                                 PerObjectData.LightData | PerObjectData.OcclusionProbe;
@@ -950,7 +949,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Main Light is always a directional light
-        static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        private static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
             int totalVisibleLights = visibleLights.Length;
 
@@ -989,7 +988,7 @@ namespace UnityEngine.Rendering.Universal
             return brightestDirectionalLightIndex;
         }
 
-        static void SetupPerFrameShaderConstants()
+        private static void SetupPerFrameShaderConstants()
         {
             // When glossy reflections are OFF in the shader we set a constant color to use as indirect specular
             SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe;

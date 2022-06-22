@@ -93,9 +93,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int validShadowCastingLights = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
-            for (int i = 0;
-                 i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount;
-                 ++i)
+            for (int i = 0; i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount; ++i)
             {
                 VisibleLight shadowLight = visibleLights[i];
 
@@ -116,9 +114,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     if (IsValidShadowCastingLight(ref renderingData.lightData, i))
                     {
-                        bool success = ShadowUtils.ExtractSpotLightMatrix(ref renderingData.cullResults,
-                            ref renderingData.shadowData,
-                            i,
+                        bool success = ShadowUtils.ExtractSpotLightMatrix(ref renderingData.cullResults, ref renderingData.shadowData, i,
                             out var shadowTransform,
                             out m_AdditionalLightSlices[shadowCastingLightIndex].viewMatrix,
                             out m_AdditionalLightSlices[shadowCastingLightIndex].projectionMatrix);
@@ -260,7 +256,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        void Clear()
+        private void Clear()
         {
             m_AdditionalShadowCastingLightIndices.Clear();
             m_AdditionalShadowCastingLightIndicesMap.Clear();
@@ -325,8 +321,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData,
-            bool softShadows)
+        private void SetupAdditionalLightsShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData, bool softShadows)
         {
             int shadowLightsCount = m_AdditionalShadowCastingLightIndices.Count;
 
@@ -391,7 +386,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        bool IsValidShadowCastingLight(ref LightData lightData, int i)
+        /// <summary>
+        /// 判断是否为有效的阴影投射灯光
+        /// </summary>
+        /// <param name="lightData"></param>
+        /// <param name="i"></param>
+        private static bool IsValidShadowCastingLight(ref LightData lightData, int i)
         {
             if (i == lightData.mainLightIndex)
                 return false;
@@ -403,8 +403,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
 
             Light light = shadowLight.light;
-            return light != null && light.shadows != LightShadows.None &&
-                   !Mathf.Approximately(light.shadowStrength, 0.0f);
+            return light != null && light.shadows != LightShadows.None && !Mathf.Approximately(light.shadowStrength, 0.0f);
         }
     }
 }

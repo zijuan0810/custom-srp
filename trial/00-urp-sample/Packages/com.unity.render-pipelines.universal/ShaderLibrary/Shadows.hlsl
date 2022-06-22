@@ -168,10 +168,13 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     attenuation4.w = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + samplingData.shadowOffset3.xyz);
     attenuation = dot(attenuation4, 0.25);
 #else
+    //为了实现类似半阴影一样的软阴影效果，肯定要对ShadowMap做某种模糊操作。
+    //这里使用5x5的卷积核，输入shadowMap的长宽以及倒数，实际UV，输出9个采样点的UV和权重
     float fetchesWeights[9];
     float2 fetchesUV[9];
     SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
+    //不再单点采样，而是根据uv进行加权计算
     attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z));
     attenuation += fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z));
     attenuation += fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z));
@@ -186,16 +189,21 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     return attenuation;
 }
 
-real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
+// 采样阴影贴图
+real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord,
+    ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
 {
     // Compiler will optimize this branch away as long as isPerspectiveProjection is known at compile time
     if (isPerspectiveProjection)
         shadowCoord.xyz /= shadowCoord.w;
 
+    //阴影强度决定了投影是死黑还是半透明，因为场景里现在没有环境光而且是单光源，所以除了照亮的地方之外，所有的景物都是一片死黑。
+    //每个光源投下的阴影强度都是不一致的，所以我们传一个ShadowStrength进去用来做插值
     real attenuation;
     real shadowStrength = shadowParams.x;
 
     // TODO: We could branch on if this light has soft shadows (shadowParams.y) to save perf on some platforms.
+    //使用软阴影时需要多重采样
 #ifdef _SHADOWS_SOFT
     attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
 #else
@@ -243,7 +251,8 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
-    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture),
+        shadowCoord, shadowSamplingData, shadowParams, false);
 }
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
@@ -277,10 +286,13 @@ float4 GetShadowCoord(VertexPositionInputs vertexInput)
     return TransformWorldToShadowCoord(vertexInput.positionWS);
 }
 
+/**
+ * \brief 应用阴影偏移
+ */
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
 {
     float invNdotL = 1.0 - saturate(dot(lightDirection, normalWS));
-    float scale = invNdotL * _ShadowBias.y;
+    float scale = invNdotL * _ShadowBias.y; //法线偏移
 
     // normal bias is negative since we want to apply an inset normal offset
     positionWS = lightDirection * _ShadowBias.xxx + positionWS;
