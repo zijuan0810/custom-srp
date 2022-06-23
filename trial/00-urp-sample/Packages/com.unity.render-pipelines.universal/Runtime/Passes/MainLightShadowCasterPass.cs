@@ -176,6 +176,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex);
 
+                //根据级联次数渲染整个场景到深度缓存纹理中
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
                     var splitData = settings.splitData;
@@ -189,8 +190,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 bool softShadows = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
+                //开启主光源阴影宏
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
+                //设置级联次数
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
+                //开启软阴影宏
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
 
                 SetupMainLightShadowReceiverConstants(cmd, shadowLight, shadowData.supportsSoftShadows);
