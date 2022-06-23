@@ -600,8 +600,20 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
+/**
+ * \brief URP通用PBR计算
+ * \param inputData 
+ * \param albedo 表面颜色，可以从材质贴图中获取
+ * \param metallic 金属度
+ * \param specular 镜面高光颜色 
+ * \param smoothness 光滑度 
+ * \param occlusion 
+ * \param emission 漫反射颜色 
+ * \param alpha 表面透明度
+ * \return 
+ */
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+                           half smoothness, half occlusion, half3 emission, half alpha)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);

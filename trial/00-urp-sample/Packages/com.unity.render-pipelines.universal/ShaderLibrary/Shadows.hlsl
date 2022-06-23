@@ -12,6 +12,7 @@
     #if defined(_MAIN_LIGHT_SHADOWS)
         #define MAIN_LIGHT_CALCULATE_SHADOWS
 
+        //未开启主光源级联阴影时，使用阴影空间坐标的顶点插值
         #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
         #endif
@@ -22,6 +23,7 @@
     #endif
 #endif
 
+//有额外的方向光或者开启主光源级联阴影时，使用世界空间的位置插值
 #if defined(_ADDITIONAL_LIGHTS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE)
     #define REQUIRES_WORLD_SPACE_POS_INTERPOLATOR
 #endif
@@ -170,6 +172,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
 #else
     //为了实现类似半阴影一样的软阴影效果，肯定要对ShadowMap做某种模糊操作。
     //这里使用5x5的卷积核，输入shadowMap的长宽以及倒数，实际UV，输出9个采样点的UV和权重
+    //为了防止出现采样失真，必须先做模糊后采样
     float fetchesWeights[9];
     float2 fetchesUV[9];
     SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
@@ -218,15 +221,29 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
 }
 
+/**
+ * \brief 计算世界空间中顶点位置的级联索引值
+ * \param positionWS 世界空间的顶点位置
+ * \return 级联索引
+ */
 half ComputeCascadeIndex(float3 positionWS)
 {
+    //计算当前像素世界坐标与包围球中心的距离
     float3 fromCenter0 = positionWS - _CascadeShadowSplitSpheres0.xyz;
     float3 fromCenter1 = positionWS - _CascadeShadowSplitSpheres1.xyz;
     float3 fromCenter2 = positionWS - _CascadeShadowSplitSpheres2.xyz;
     float3 fromCenter3 = positionWS - _CascadeShadowSplitSpheres3.xyz;
-    float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+    //这里用点乘其实就是算距离的平方
+    float4 distances2 = float4(
+        dot(fromCenter0, fromCenter0),
+        dot(fromCenter1, fromCenter1),
+        dot(fromCenter2, fromCenter2),
+        dot(fromCenter3, fromCenter3));
 
+    //判断像素是否在包围求内
     half4 weights = half4(distances2 < _CascadeShadowSplitSphereRadii);
+    //如果像素同时在多个包围球内，则取index最小的（即离相机更近的）
+    //CSM中通常如果不同层级的shadowmap overlap，然后同时处于两张shadowmap overlap处的像素点会同时在两个shadowmap上做采样然后插值
     weights.yzw = saturate(weights.yzw - weights.xyz);
 
     return 4 - dot(weights, half4(4, 3, 2, 1));
@@ -243,6 +260,11 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     return mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 }
 
+/**
+ * \brief 获取主光源实时阴影的衰减值，即通过顶点在阴影贴图中的坐标位置从ShadowMap深度贴图中采样
+ * \param shadowCoord 顶点在阴影贴图中的坐标位置
+ * \return 阴影的衰减值
+ */
 half MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
