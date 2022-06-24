@@ -73,6 +73,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 #if defined(_NORMALMAP) || defined(_DETAIL)
+    //使用法线贴图时需要将切线空间转换为世界空间
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
     half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
@@ -85,12 +86,17 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.normalWS = input.normalWS;
 #endif
 
+    //归一化法线
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    //世界空间下的视图方向
     inputData.viewDirectionWS = viewDirWS;
 
+    //计算顶点的阴影贴图下的坐标位置
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    //未开启主光源级联阴影时，使用阴影空间坐标的顶点插值
     inputData.shadowCoord = input.shadowCoord;
 #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    //开启_MAIN_LIGHT_SHADOWS宏，使用主光源级联阴影
     inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);

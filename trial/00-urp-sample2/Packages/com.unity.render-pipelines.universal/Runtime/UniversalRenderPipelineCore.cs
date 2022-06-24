@@ -537,7 +537,11 @@ namespace UnityEngine.Rendering.Universal
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
-        void SortCameras(List<Camera> cameras)
+        /// <summary>
+        /// 根据相机深度进行排序
+        /// </summary>
+        /// <param name="cameras"></param>
+        private void SortCameras(List<Camera> cameras)
         {
             if (cameras.Count > 1)
                 cameras.Sort(cameraComparison);
@@ -566,6 +570,9 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
 
+        /// <summary>
+        /// 为相机创建RenderTexture，并设置MSAA等相关参数
+        /// </summary>
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
