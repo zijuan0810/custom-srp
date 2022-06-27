@@ -1042,6 +1042,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
                     cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
 
+                    //这样的图集有一个缺点，在一个平铺块边缘采样时，可能会在两个平铺块之间插值，从而导致错误的结果。
+                    //当使用soft阴影时情况会更加的糟糕，因为tent filter可能会在离原始采样点偏移最多4个纹素的地方采样。 相比混合相邻的平铺块，能够淡出阴影肯定更好。
+                    //所以通过限制GPU在比视口小一点的区域内写入数据，来使每个平铺块周围添加一圈空值边缘，这被称为裁剪（scissoring）。
+                    //我们可以传递一个比视口略小的矩形给shadowBuffer.EnableScissorRect方法来实现裁剪。
+                    //我们需要四个纹素的边缘，所以这个矩形位置应该是视口位置加4，尺寸为视口大小减8。
                     cmd.EnableScissorRect(new Rect(0, tileY << tileShiftMipLevel, depthInfoWidth, (tileYEnd - tileY) << tileShiftMipLevel));
                     cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
 

@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -35,6 +34,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
+        
+        /// <summary>
+        /// 级联阴影裁剪包围求，xyz表示包围球的中心坐标，w表示半径
+        /// </summary>
         Vector4[] m_CascadeSplitDistances;
 
         bool m_CreateEmptyShadowmap;
@@ -74,10 +77,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return SetupForEmptyRendering(ref renderingData);
 
             Clear();
+            
             int shadowLightIndex = renderingData.lightData.mainLightIndex;
             if (shadowLightIndex == -1)
                 return SetupForEmptyRendering(ref renderingData);
 
+            //从渲染数据中取出可见光信息
             VisibleLight shadowLight = renderingData.lightData.visibleLights[shadowLightIndex];
             Light light = shadowLight.light;
             if (light.shadows == LightShadows.None)
@@ -88,13 +93,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogWarning("Only directional lights are supported as main light.");
             }
 
+            //根据灯光索引获取阴影投射器的包围盒
             if (!renderingData.cullResults.GetShadowCasterBounds(shadowLightIndex, out Bounds bounds))
                 return SetupForEmptyRendering(ref renderingData);
 
+            //保存阴影级联次数，次数越大消耗越大，但精度越高，效果也更好
             m_ShadowCasterCascadesCount = renderingData.shadowData.mainLightShadowCascadesCount;
 
             int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(renderingData.shadowData.mainLightShadowmapWidth,
                 renderingData.shadowData.mainLightShadowmapHeight, m_ShadowCasterCascadesCount);
+            //设置渲染目标纹理的宽高。当级联次数为2时高度减半
             renderTargetWidth = renderingData.shadowData.mainLightShadowmapWidth;
             renderTargetHeight = (m_ShadowCasterCascadesCount == 2)
                 ? renderingData.shadowData.mainLightShadowmapHeight >> 1
@@ -110,6 +118,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return SetupForEmptyRendering(ref renderingData);
             }
 
+            //创建ShadowMap深度缓存纹理，这里使用了16位的深度图
             m_MainLightShadowmapTexture =
                 ShadowUtils.GetTemporaryShadowTexture(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits);
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
@@ -134,6 +143,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            //这里将depthOnly设置位true
             ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), m_MainLightShadowmapTexture.depthStencilFormat,
                 renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);

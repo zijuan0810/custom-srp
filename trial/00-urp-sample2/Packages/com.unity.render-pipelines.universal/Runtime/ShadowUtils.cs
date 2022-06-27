@@ -4,9 +4,15 @@ namespace UnityEngine.Rendering.Universal
     {
         public Matrix4x4 viewMatrix;
         public Matrix4x4 projectionMatrix;
+        /// <summary>
+        /// 世界空间转换到阴影贴图空间的变化矩阵
+        /// </summary>
         public Matrix4x4 shadowTransform;
         public int offsetX;
         public int offsetY;
+        /// <summary>
+        /// 阴影tile的分辨率，即正方形宽度
+        /// </summary>
         public int resolution;
         public ShadowSplitData splitData; // splitData contains culling information
 
@@ -47,9 +53,9 @@ namespace UnityEngine.Rendering.Universal
             out Vector4 cascadeSplitDistance, out ShadowSliceData shadowSliceData)
         {
             bool success = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(shadowLightIndex,
-                cascadeIndex, shadowData.mainLightShadowCascadesCount, shadowData.mainLightShadowCascadesSplit, shadowResolution,
-                shadowNearPlane, out shadowSliceData.viewMatrix, out shadowSliceData.projectionMatrix,
-                out shadowSliceData.splitData);
+                cascadeIndex, shadowData.mainLightShadowCascadesCount, shadowData.mainLightShadowCascadesSplit, 
+                shadowResolution, shadowNearPlane, 
+                out shadowSliceData.viewMatrix, out shadowSliceData.projectionMatrix, out shadowSliceData.splitData);
 
             cascadeSplitDistance = shadowSliceData.splitData.cullingSphere;
             shadowSliceData.offsetX = (cascadeIndex % 2) * shadowResolution;
@@ -123,8 +129,8 @@ namespace UnityEngine.Rendering.Universal
             //设置全局深度偏移值
             cmd.SetGlobalDepthBias(1.0f, 2.5f);
 
-            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution,
-                shadowSliceData.resolution));
+            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, 
+                shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
@@ -145,6 +151,9 @@ namespace UnityEngine.Rendering.Universal
                 shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
         }
 
+        /// <summary>
+        /// 获取级联阴影贴图的tile最大分辨率
+        /// </summary>
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
@@ -222,6 +231,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // depth and normal bias scale is in shadowmap texel size in world space
+            // 根据分辨率做一些调整，更好的控制调整效果
             float texelSize = frustumSize / shadowResolution;
             float depthBias = -shadowData.bias[shadowLightIndex].x * texelSize;
             float normalBias = -shadowData.bias[shadowLightIndex].y * texelSize;

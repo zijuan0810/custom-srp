@@ -402,7 +402,8 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorAttachments[i] = 0;
         }
 
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, 
+            int sampleCount = -1, bool depth = false)
         {
             ConfigureTarget(colorAttachment);
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
