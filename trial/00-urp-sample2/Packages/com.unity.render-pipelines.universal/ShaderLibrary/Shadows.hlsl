@@ -379,9 +379,11 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
 
 half GetMainLightShadowFade(float3 positionWS)
 {
+    //计算当前像素与相机的平方距离
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
+    //z: main light fade scale, w: main light fade bias
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
     return half(fade);
 }

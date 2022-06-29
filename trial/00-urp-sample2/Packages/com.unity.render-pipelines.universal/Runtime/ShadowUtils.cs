@@ -279,7 +279,8 @@ namespace UnityEngine.Rendering.Universal
             border = 1 - border;
             border *= border;
 
-            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
+            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance.
+            // 90% arbitrarily chosen but should work well enough.
             float distanceFadeNear = border * fadeDistance;
             scale = 1.0f / (fadeDistance - distanceFadeNear);
             bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
