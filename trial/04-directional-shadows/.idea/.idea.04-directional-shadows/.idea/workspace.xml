@@ -8,7 +8,6 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///Dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ca42919df2b74e53b11002749c8755af118a00/36/0362cd52/RenderTargetIdentifier.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -60,6 +59,7 @@
       <updated>1655483067962</updated>
       <workItem from="1655483069438" duration="423000" />
       <workItem from="1655483502379" duration="27429000" />
+      <workItem from="1656082564172" duration="14317000" />
     </task>
     <servers />
   </component>
