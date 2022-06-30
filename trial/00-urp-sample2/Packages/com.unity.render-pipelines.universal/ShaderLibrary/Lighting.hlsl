@@ -286,7 +286,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                                               surfaceData.clearCoatMask, specularHighlightsOff);
     }
 
-    #if defined(_ADDITIONAL_LIGHTS)
+#if defined(_ADDITIONAL_LIGHTS)
     uint pixelLightCount = GetAdditionalLightsCount();
 
     #if USE_CLUSTERED_LIGHTING
@@ -313,11 +313,11 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
                                                                           surfaceData.clearCoatMask, specularHighlightsOff);
         }
     LIGHT_LOOP_END
-    #endif
+#endif
 
-    #if defined(_ADDITIONAL_LIGHTS_VERTEX)
+#if defined(_ADDITIONAL_LIGHTS_VERTEX)
     lightingData.vertexLightingColor += inputData.vertexLighting * brdfData.diffuse;
-    #endif
+#endif
 
     return CalculateFinalColor(lightingData, surfaceData.alpha);
 }

@@ -23,13 +23,13 @@
 #endif
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
-#define SHADOWMASK_NAME unity_ShadowMasks
-#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
-#define SHADOWMASK_SAMPLE_EXTRA_ARGS , unity_LightmapIndex.x
+    #define SHADOWMASK_NAME unity_ShadowMasks
+    #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
+    #define SHADOWMASK_SAMPLE_EXTRA_ARGS , unity_LightmapIndex.x
 #else
-#define SHADOWMASK_NAME unity_ShadowMask
-#define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
-#define SHADOWMASK_SAMPLE_EXTRA_ARGS
+    #define SHADOWMASK_NAME unity_ShadowMask
+    #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
+    #define SHADOWMASK_SAMPLE_EXTRA_ARGS
 #endif
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
@@ -353,8 +353,6 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
 
     int shadowSliceIndex = shadowParams.w;
-
-
     if (shadowSliceIndex < 0)
         return 1.0;
 
@@ -374,7 +372,8 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 #endif
 
-    return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
+    return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture),
+        shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
 half GetMainLightShadowFade(float3 positionWS)

@@ -144,10 +144,10 @@ Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
     Light light = GetMainLight();
     light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
 
-    #if defined(_LIGHT_COOKIES)
-        real3 cookieColor = SampleMainLightCookie(positionWS);
-        light.color *= cookieColor;
-    #endif
+#if defined(_LIGHT_COOKIES)
+    real3 cookieColor = SampleMainLightCookie(positionWS);
+    light.color *= cookieColor;
+#endif
 
     return light;
 }
@@ -156,12 +156,12 @@ Light GetMainLight(InputData inputData, half4 shadowMask, AmbientOcclusionFactor
 {
     Light light = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {
         light.color *= aoFactor.directAmbientOcclusion;
     }
-    #endif
+#endif
 
     return light;
 }
