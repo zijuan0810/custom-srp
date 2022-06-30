@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
 
             // It is the culling sphere radius multiplier for shadow cascade blending
             // If this is less than 1.0, then it will begin to cull castors across cascades
+            // 如果能够保证它们的结果总是被一个较小的级联所覆盖，那么尝试从较大的级联中剔除一些shadow caster是有意义的
             shadowSliceData.splitData.shadowCascadeBlendCullingFactor = 1.0f;
 
             // If we have shadow cascades baked into the atlas we bake cascade transform

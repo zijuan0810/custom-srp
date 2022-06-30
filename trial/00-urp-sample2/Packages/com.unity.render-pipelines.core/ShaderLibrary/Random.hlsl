@@ -92,7 +92,8 @@ float2 InitRandom(float2 input)
 }
 #endif // SHADER_API_GLES
 
-//From  Next Generation Post Processing in Call of Duty: Advanced Warfare [Jimenez 2014]
+// Generates a rotated tiled dither pattern given a screen-space XY position
+// From  Next Generation Post Processing in Call of Duty: Advanced Warfare [Jimenez 2014]
 // http://advances.realtimerendering.com/s2014/index.html
 float InterleavedGradientNoise(float2 pixCoord, int frameCount)
 {
