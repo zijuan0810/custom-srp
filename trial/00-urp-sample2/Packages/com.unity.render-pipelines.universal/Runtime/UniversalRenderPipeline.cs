@@ -1240,6 +1240,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <summary>
+        /// 获取每个物体的灯光属性标签，如发射探针、烘焙贴图等等
+        /// </summary>
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.getPerObjectLightFlags);
