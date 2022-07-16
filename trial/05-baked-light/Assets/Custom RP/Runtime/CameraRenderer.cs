@@ -88,7 +88,8 @@ public partial class CameraRenderer {
 			unlitShaderTagId, sortingSettings
 		) {
 			enableDynamicBatching = useDynamicBatching,
-			enableInstancing = useGPUInstancing
+			enableInstancing = useGPUInstancing,
+			perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe,
 		};
 		drawingSettings.SetShaderPassName(1, litShaderTagId);
 
