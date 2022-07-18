@@ -31,30 +31,38 @@ CBUFFER_START(_CustomShadows)
 	float4 _ShadowDistanceFade;
 CBUFFER_END
 
-struct ShadowData {
+struct ShadowMask 
+{
+	bool distance;
+	float4 shadows;
+};
+
+struct ShadowData
+{
 	int cascadeIndex;
 	float cascadeBlend;
 	float strength;
+	ShadowMask shadowMask;
 };
 
-float FadedShadowStrength (float distance, float scale, float fade) {
+float FadedShadowStrength (float distance, float scale, float fade)
+{
 	return saturate((1.0 - distance * scale) * fade);
 }
 
-ShadowData GetShadowData (Surface surfaceWS) {
+ShadowData GetShadowData (Surface surfaceWS)
+{
 	ShadowData data;
+	data.shadowMask.distance = false;
+	data.shadowMask.shadows = 1.0;
 	data.cascadeBlend = 1.0;
-	data.strength = FadedShadowStrength(
-		surfaceWS.depth, _ShadowDistanceFade.x, _ShadowDistanceFade.y
-	);
+	data.strength = FadedShadowStrength(surfaceWS.depth, _ShadowDistanceFade.x, _ShadowDistanceFade.y);
 	int i;
 	for (i = 0; i < _CascadeCount; i++) {
 		float4 sphere = _CascadeCullingSpheres[i];
 		float distanceSqr = DistanceSquared(surfaceWS.position, sphere.xyz);
 		if (distanceSqr < sphere.w) {
-			float fade = FadedShadowStrength(
-				distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z
-			);
+			float fade = FadedShadowStrength(distanceSqr, _CascadeData[i].x, _ShadowDistanceFade.z);
 			if (i == _CascadeCount - 1) {
 				data.strength *= fade;
 			}
