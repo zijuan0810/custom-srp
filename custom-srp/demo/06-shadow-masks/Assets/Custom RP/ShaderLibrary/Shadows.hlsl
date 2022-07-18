@@ -138,7 +138,7 @@ float GetCascadedShadow(DirectionalShadowData directional, ShadowData global, Su
 	return shadow;
 }
 
-float GetBakedShadow (ShadowMask mask)
+float GetBakedShadow(ShadowMask mask)
 {
 	float shadow = 1.0;
 	if (mask.distance) {
@@ -147,11 +147,21 @@ float GetBakedShadow (ShadowMask mask)
 	return shadow;
 }
 
+float GetBakedShadow(ShadowMask mask, float strength)
+{
+	if (mask.distance)
+		return lerp(1.0, GetBakedShadow(mask), strength);
+	return 1.0;
+}
+
 float MixBakedAndRealtimeShadows(ShadowData global, float shadow, float strength)
 {
 	float baked = GetBakedShadow(global.shadowMask);
 	if (global.shadowMask.distance)
-		shadow = baked;
+	{
+		shadow = lerp(baked, shadow, global.strength);
+		return lerp(1.0, shadow, strength);
+	}
 	return lerp(1.0, shadow, strength);
 }
 
@@ -162,8 +172,8 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
 #endif
 
 	float shadow;
-	if (directional.strength <= 0.0)
-		shadow = 1.0;
+	if (directional.strength * global.strength <= 0.0)
+		shadow = GetBakedShadow(global.shadowMask, abs(directional.strength));
 	else
 	{
 		shadow = GetCascadedShadow(directional, global, surfaceWS);
