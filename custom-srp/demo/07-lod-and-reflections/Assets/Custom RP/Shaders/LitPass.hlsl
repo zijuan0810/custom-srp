@@ -37,8 +37,11 @@ Varyings LitPassVertex (Attributes input) {
 	return output;
 }
 
-float4 LitPassFragment (Varyings input) : SV_TARGET {
+float4 LitPassFragment (Varyings input) : SV_TARGET
+{
 	UNITY_SETUP_INSTANCE_ID(input);
+	ClipLOD(input.positionCS, unity_LODFade.x);
+	
 	float4 base = GetBase(input.baseUV);
 	#if defined(_CLIPPING)
 		clip(base.a - GetCutoff(input.baseUV));

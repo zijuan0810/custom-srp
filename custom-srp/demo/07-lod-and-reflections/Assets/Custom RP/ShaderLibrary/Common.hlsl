@@ -26,4 +26,23 @@ float DistanceSquared(float3 pA, float3 pB) {
 	return dot(pA - pB, pA - pB);
 }
 
+float RandomSampling(float2 position)
+{
+	float scale = 0.5;
+	float magic = 3571.0;
+	float2 random = (1.0 / 4320.0) * position + float2( 0.25, 0.0 );
+	random = frac(dot(random * random, magic));  
+	random = frac(dot(random * random, magic));  
+	return -scale + 2.0 * scale * random;
+}
+
+void ClipLOD (float2 positionCS, float fade) {
+#if defined(LOD_FADE_CROSSFADE)
+	float dither = (positionCS.y % 32) / 32;
+	// dither = InterleavedGradientNoise(positionCS.xy, 0);
+	dither = RandomSampling(positionCS.xy);
+	clip(fade + (fade < 0.0 ? dither : -dither));
+#endif
+}
+
 #endif
