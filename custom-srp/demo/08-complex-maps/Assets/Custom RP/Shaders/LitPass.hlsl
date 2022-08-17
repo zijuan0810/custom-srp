@@ -8,7 +8,8 @@
 #include "../ShaderLibrary/GI.hlsl"
 #include "../ShaderLibrary/Lighting.hlsl"
 
-struct Attributes {
+struct Attributes
+{
 	float3 positionOS : POSITION;
 	float3 normalOS : NORMAL;
 	float2 baseUV : TEXCOORD0;
@@ -16,7 +17,8 @@ struct Attributes {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-struct Varyings {
+struct Varyings
+{
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : VAR_POSITION;
 	float3 normalWS : VAR_NORMAL;
@@ -25,7 +27,8 @@ struct Varyings {
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-Varyings LitPassVertex (Attributes input) {
+Varyings LitPassVertex (Attributes input)
+{
 	Varyings output;
 	UNITY_SETUP_INSTANCE_ID(input);
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
@@ -37,7 +40,8 @@ Varyings LitPassVertex (Attributes input) {
 	return output;
 }
 
-float4 LitPassFragment (Varyings input) : SV_TARGET {
+float4 LitPassFragment (Varyings input) : SV_TARGET
+{
 	UNITY_SETUP_INSTANCE_ID(input);
 	ClipLOD(input.positionCS.xy, unity_LODFade.x);
 
@@ -53,6 +57,7 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 	surface.depth = -TransformWorldToView(input.positionWS).z;
 	surface.color = base.rgb;
 	surface.alpha = base.a;
+	surface.occlusion = GetOcclusion(input.baseUV);
 	surface.metallic = GetMetallic(input.baseUV);
 	surface.smoothness = GetSmoothness(input.baseUV);
 	surface.fresnelStrength = GetFresnel(input.baseUV);
