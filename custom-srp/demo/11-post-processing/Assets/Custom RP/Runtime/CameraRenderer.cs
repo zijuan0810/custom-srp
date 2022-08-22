@@ -51,10 +51,11 @@ public partial class CameraRenderer {
 			useDynamicBatching, useGPUInstancing, useLightsPerObject
 		);
 		DrawUnsupportedShaders();
-		DrawGizmos();
+		DrawGizmosBeforeFX();
 		if (postFXStack.IsActive) {
 			postFXStack.Render(frameBufferId);
 		}
+		DrawGizmosAfterFX();
 		Cleanup();
 		Submit();
 	}
