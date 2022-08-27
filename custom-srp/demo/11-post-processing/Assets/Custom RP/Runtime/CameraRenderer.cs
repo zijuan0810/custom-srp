@@ -89,7 +89,7 @@ public partial class CameraRenderer {
 				32, FilterMode.Bilinear, RenderTextureFormat.Default
 			);
 			buffer.SetRenderTarget(
-				frameBufferId, 
+				new RenderTargetIdentifier(frameBufferId), 
 				RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
 			);
 		}
@@ -97,8 +97,7 @@ public partial class CameraRenderer {
 		buffer.ClearRenderTarget(
 			flags <= CameraClearFlags.Depth,
 			flags == CameraClearFlags.Color,
-			flags == CameraClearFlags.Color ?
-				camera.backgroundColor.linear : Color.clear
+			flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear
 		);
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
