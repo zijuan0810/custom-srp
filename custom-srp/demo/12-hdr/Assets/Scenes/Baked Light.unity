@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.15759793, g: 0.18113056, b: 0.19674924, a: 1}
+  m_IndirectSpecularColor: {r: 0.15759802, g: 0.18113054, b: 0.19674933, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3389,7 +3389,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: -3.6893497e+19, y: 2.77e-43, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 1.01e-43, z: 1.1e-44, w: 0.0000000011419798}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -4480,7 +4480,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 3.208e-42, w: 1.3e-44}
+  m_BoundingSphereOverride: {x: 0, y: 2.3509887e-38, z: 0.0000000018773108, w: 0.0000000011688597}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -9482,7 +9482,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 2.09e-43, w: 5.9e-44}
+  m_BoundingSphereOverride: {x: 0, y: 0.03125, z: 2.3509887e-38, w: 0.0000000011095151}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -9640,7 +9640,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.9766013, g: 0.8632076, b: 1, a: 1}
-  m_Intensity: 2
+  m_Intensity: 20
   m_Range: 13.407884
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -9685,7 +9685,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 9.67e-43, z: 1e-45, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 3.216e-42, w: 0.0000000011825305}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -9777,7 +9777,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 8e-45, y: 0, z: 1.955e-42, w: 1e-45}
+  m_BoundingSphereOverride: {x: 0, y: 6.018531e-36, z: 2.3509887e-38, w: 0.0000000011206405}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0

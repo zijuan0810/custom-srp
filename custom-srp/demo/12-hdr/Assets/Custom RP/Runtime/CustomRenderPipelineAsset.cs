@@ -2,7 +2,10 @@
 using UnityEngine.Rendering;
 
 [CreateAssetMenu(menuName = "Rendering/Custom Render Pipeline")]
-public class CustomRenderPipelineAsset : RenderPipelineAsset {
+public class CustomRenderPipelineAsset : RenderPipelineAsset 
+{
+	[SerializeField]
+	bool allowHDR = true;
 
 	[SerializeField]
 	bool
@@ -18,7 +21,7 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset {
 	PostFXSettings postFXSettings = default;
 
 	protected override RenderPipeline CreatePipeline () {
-		return new CustomRenderPipeline(
+		return new CustomRenderPipeline(allowHDR,
 			useDynamicBatching, useGPUInstancing, useSRPBatcher,
 			useLightsPerObject, shadows, postFXSettings
 		);

@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-public partial class CameraRenderer {
+public partial class CameraRenderer 
+{
 
 	const string bufferName = "Render Camera";
 
@@ -24,9 +26,11 @@ public partial class CameraRenderer {
 	Lighting lighting = new Lighting();
 
 	PostFXStack postFXStack = new PostFXStack();
+	
+	bool useHDR;
 
 	public void Render (
-		ScriptableRenderContext context, Camera camera,
+		ScriptableRenderContext context, Camera camera, bool allowHDR,
 		bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject,
 		ShadowSettings shadowSettings, PostFXSettings postFXSettings
 	) {
@@ -39,12 +43,14 @@ public partial class CameraRenderer {
 			return;
 		}
 		
+		useHDR = allowHDR && camera.allowHDR;
+		
 		buffer.BeginSample(SampleName);
 		ExecuteBuffer();
 		lighting.Setup(
 			context, cullingResults, shadowSettings, useLightsPerObject
 		);
-		postFXStack.Setup(context, camera, postFXSettings);
+		postFXStack.Setup(context, camera, postFXSettings, useHDR);
 		buffer.EndSample(SampleName);
 		Setup();
 		DrawVisibleGeometry(
@@ -79,7 +85,8 @@ public partial class CameraRenderer {
 			}
 			buffer.GetTemporaryRT(
 				frameBufferId, camera.pixelWidth, camera.pixelHeight,
-				32, FilterMode.Bilinear, RenderTextureFormat.Default
+				32, FilterMode.Bilinear, 
+				useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default
 			);
 			buffer.SetRenderTarget(
 				frameBufferId,

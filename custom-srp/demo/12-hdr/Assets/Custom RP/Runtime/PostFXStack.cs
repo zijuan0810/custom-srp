@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-public partial class PostFXStack {
-
+public partial class PostFXStack 
+{
 	enum Pass {
 		BloomCombine,
 		BloomHorizontal,
@@ -34,6 +34,7 @@ public partial class PostFXStack {
 	PostFXSettings settings;
 
 	int bloomPyramidId;
+	bool useHDR;
 
 	public bool IsActive => settings != null;
 
@@ -45,12 +46,14 @@ public partial class PostFXStack {
 	}
 
 	public void Setup (
-		ScriptableRenderContext context, Camera camera, PostFXSettings settings
-	) {
+		ScriptableRenderContext context, Camera camera, PostFXSettings settings,
+		bool useHDR
+	)
+	{
+		this.useHDR = useHDR;
 		this.context = context;
 		this.camera = camera;
-		this.settings =
-			camera.cameraType <= CameraType.SceneView ? settings : null;
+		this.settings = camera.cameraType <= CameraType.SceneView ? settings : null;
 		ApplySceneViewState();
 	}
 
@@ -82,7 +85,7 @@ public partial class PostFXStack {
 		threshold.y -= threshold.x;
 		buffer.SetGlobalVector(bloomThresholdId, threshold);
 
-		RenderTextureFormat format = RenderTextureFormat.Default;
+		RenderTextureFormat format = useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 		buffer.GetTemporaryRT(
 			bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format
 		);
@@ -138,9 +141,18 @@ public partial class PostFXStack {
 		buffer.EndSample("Bloom");
 	}
 
-	void Draw (
-		RenderTargetIdentifier from, RenderTargetIdentifier to, Pass pass
-	) {
+	void Draw(int fromId, int toId, Pass pass)
+	{
+		Draw(new RenderTargetIdentifier(fromId), new RenderTargetIdentifier(toId), pass);
+	}
+
+	void Draw(int fromId, BuiltinRenderTextureType textureType, Pass pass)
+	{
+		Draw(new RenderTargetIdentifier(fromId), new RenderTargetIdentifier(textureType), pass);
+	}
+
+	void Draw(RenderTargetIdentifier from, RenderTargetIdentifier to, Pass pass) 
+	{
 		buffer.SetGlobalTexture(fxSourceId, from);
 		buffer.SetRenderTarget(
 			to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
