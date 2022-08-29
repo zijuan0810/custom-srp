@@ -7,6 +7,7 @@ public partial class PostFXStack
 		BloomCombine,
 		BloomHorizontal,
 		BloomPrefilter,
+		BloomPrefilterFireflies,
 		BloomVertical,
 		Copy
 	}
@@ -86,10 +87,8 @@ public partial class PostFXStack
 		buffer.SetGlobalVector(bloomThresholdId, threshold);
 
 		RenderTextureFormat format = useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
-		buffer.GetTemporaryRT(
-			bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format
-		);
-		Draw(sourceId, bloomPrefilterId, Pass.BloomPrefilter);
+		buffer.GetTemporaryRT(bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
+		Draw(sourceId, bloomPrefilterId, bloom.fadeFireflies ? Pass.BloomPrefilterFireflies : Pass.BloomPrefilter);
 		width /= 2;
 		height /= 2;
 
